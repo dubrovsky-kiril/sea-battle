@@ -1,0 +1,70 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container > h1 {
+  margin-bottom: 50px;
+}
+
+.field {
+  margin: 25px 0;
+  border: 1px solid #000;
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  padding: 25px;
+  border: 1px solid #000;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.navigation > button {
+  width: 100px;
+  height: 35px;
+  font-size: 20px;
+  border-radius: 15px;
+}
+
+.input {
+  margin-right: 15px;
+}
+
+.input > label {
+  margin-right: 5px;
+  font-size: 18px;
+}
+
+.input > input {
+  width: 80px;
+  font-size: 18px;
+}
+
+.rowHeader, .columnHeader {
+  position: absolute;
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.rowHeader {
+  top: -35px;
+  left: 20px;
+}
+
+.columnHeader {
+  right: 65px;
+  top: 10px;
+}
+
+.column {
+  position: relative;
+}
