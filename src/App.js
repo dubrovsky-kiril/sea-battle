@@ -30,23 +30,23 @@ class App extends PureComponent {
       I: 1,
       L: 1
     };
-    // this.ships = {
-    //   dot: {
-    //     type: 'dot',
-    //     count: 2,
-    //     coordinates: []
-    //   },
-    //   I: {
-    //     type: 'I',
-    //     count: 1,
-    //     coordinates:[]
-    //   },
-    //   L: {
-    //     type: 'L',
-    //     count: 1,
-    //     coordinates:[]
-    //   }
-    // };
+    this.ships = {
+      dot: {
+        type: 'dot',
+        count: 2,
+        coordinates: []
+      },
+      I: {
+        type: 'I',
+        count: 1,
+        coordinates:[]
+      },
+      L: {
+        type: 'L',
+        count: 1,
+        coordinates:[]
+      }
+    };
     this.state = {
       field: null
     };
@@ -185,6 +185,7 @@ class App extends PureComponent {
       } else {
         alert(`Coordinates are outside of field range! You should enter coordinates in range from ${this.getFieldRange(this.state.field).min} to ${this.getFieldRange(this.state.field).max}`)
       }
+
       e.target.row.value = '';
       e.target.column.value = '';
     } else {
@@ -198,8 +199,6 @@ class App extends PureComponent {
 
     const rowHeaderIterator = getIterator();
     const columnHeaderIterator = getIterator();
-
-    console.log(field);
 
     return (
       <div className="container">
