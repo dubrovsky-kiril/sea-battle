@@ -8,6 +8,8 @@ const uniqWith = require('lodash/fp/uniqWith');
 const filter = require('lodash/fp/filter').convert({ 'cap': false });
 const differenceWith = require('lodash/fp/differenceWith');
 const reduce = require('lodash/fp/reduce');
+const every = require('lodash/fp/every');
+const find = require('lodash/fp/find');
 const { getRandomNumberInRange, getIterator } = require('./helpers');
 const { getCellsAroundCell, get_I_ShipDirections, get_L_ShipDirections } = require('./coordinatesGetters');
 const { Row } = require('./Row');
@@ -24,11 +26,6 @@ class App extends PureComponent {
       missedShot: 3,
       damagedShot: 4,
       sunkShip: 5
-    };
-    this.numberOfShipsToMount = {
-      dot: 2,
-      I: 1,
-      L: 1
     };
     this.ships = {
       dot: {
@@ -131,25 +128,28 @@ class App extends PureComponent {
       }, field);
   };
 
-  mountShips = (times, cellDesignations, field, directionsGetter = x => [x]) => {
-    if (times > 0) {
+  mountShips = (shipType, shipsCount, cellDesignations, field, directionsGetter = x => [x]) => {
+    if (shipsCount > 0) {
       const defaultCellGetter = () => this.pickADefaultCell(field);
       const sieveCellsAcrossField = this.sieveDefaultCells(field, cellDesignations.reserved);
 
       const shipCells = this.findADirection(defaultCellGetter, directionsGetter, field, sieveCellsAcrossField);
+
+      this.ships[shipType].coordinates = [...this.ships[shipType].coordinates, shipCells];
+
       const newFieldWithShipCells = this.placeCellsOnField(shipCells, field, this.placeOnField(cellDesignations.ship));
       const reservedCells = differenceWith(isEqual, uniqWith(isEqual, flatten(map(sieveCellsAcrossField, map(getCellsAroundCell, shipCells)))), shipCells);
       const newFieldWithReservecCells = this.placeCellsOnField(reservedCells, newFieldWithShipCells, this.placeOnField(cellDesignations.reserved));
 
-      return this.mountShips(times - 1, cellDesignations, newFieldWithReservecCells, directionsGetter);
+      return this.mountShips(shipType, shipsCount - 1, cellDesignations, newFieldWithReservecCells, directionsGetter);
     } else {
       return field;
     }
   }
 
-  add_Dot_Ships = field => this.mountShips(this.numberOfShipsToMount.dot, this.cellDesignations, field);
-  add_I_Ships = field => this.mountShips(this.numberOfShipsToMount.I, this.cellDesignations, field, get_I_ShipDirections);
-  add_L_Ships = field => this.mountShips(this.numberOfShipsToMount.L, this.cellDesignations, field, get_L_ShipDirections);
+  add_Dot_Ships = field => this.mountShips(this.ships.dot.type, this.ships.dot.count, this.cellDesignations, field);
+  add_I_Ships = field => this.mountShips(this.ships.I.type, this.ships.I.count, this.cellDesignations, field, get_I_ShipDirections);
+  add_L_Ships = field => this.mountShips(this.ships.L.type, this.ships.L.count, this.cellDesignations, field, get_L_ShipDirections);
 
   componentDidMount() {
     this.setState({field: this.add_L_Ships(this.add_I_Ships(this.add_Dot_Ships(this.getField(this.fieldSize, this.cellDesignations.default))))})
@@ -164,19 +164,59 @@ class App extends PureComponent {
     if (rowToFire && columnToFire) {
       if (this.isNotOutsideField(rowToFire, this.getFieldRange(this.state.field)) && this.isNotOutsideField(columnToFire, this.getFieldRange(this.state.field))) {
         const fieldCopy = [...this.state.field];
-        const shot = fieldCopy[rowToFire][columnToFire]
+        const shot = fieldCopy[rowToFire][columnToFire];
 
         switch(shot) {
-          case 0:
-            this.setState({field: [...fieldCopy, ...fieldCopy[rowToFire][columnToFire] = 3]})
+          case this.cellDesignations.default:
+            this.setState({field: [...fieldCopy, ...fieldCopy[rowToFire][columnToFire] = this.cellDesignations.missedShot]})
             break;
-          case 1:
-            this.setState({field: [...fieldCopy, ...fieldCopy[rowToFire][columnToFire] = 4]})
+          case this.cellDesignations.ship:
+            fieldCopy[rowToFire][columnToFire] = this.cellDesignations.damagedShot;
+
+            const getShipsCoordinates = (acc, curr) => {
+              acc = [...acc, this.ships[curr].coordinates]
+
+              return acc;
+            };
+
+            const shipsCoordinates = reduce(getShipsCoordinates, [], Object.keys(this.ships));
+
+            const getSunkShipCoordinates = (acc, curr) => {
+              const findSunkShipCoordinates = shipCoordinates => {
+                const getCellsDesignations = coordinates => fieldCopy[coordinates[0]][coordinates[1]];
+
+                const shipCells = map(getCellsDesignations, shipCoordinates);
+
+                const isCellDamaged = cell => cell === this.cellDesignations.damagedShot;
+
+                return every(isCellDamaged, shipCells);
+              };
+
+              const sunkShip = find(findSunkShipCoordinates, curr);
+
+              if (sunkShip !== undefined) {
+                acc = sunkShip;
+
+                return acc;
+              } else {
+                return acc;
+              }
+            };
+
+            const sunkShipCoordinates = reduce(getSunkShipCoordinates, undefined, shipsCoordinates);
+
+            if (sunkShipCoordinates) {
+              const newField = this.placeCellsOnField(sunkShipCoordinates, fieldCopy, this.placeOnField(this.cellDesignations.sunkShip));
+
+              this.setState({field: newField})
+            } else {
+              this.setState({field: [...fieldCopy, ...fieldCopy[rowToFire][columnToFire] = this.cellDesignations.damagedShot]})
+            }
             break;
-          case 2:
-            this.setState({field: [...fieldCopy, ...fieldCopy[rowToFire][columnToFire] = 3]})
+          case this.cellDesignations.reserved:
+            this.setState({field: [...fieldCopy, ...fieldCopy[rowToFire][columnToFire] = this.cellDesignations.missedShot]})
             break;
-          case 3 || 4 || 5:
+          case this.cellDesignations.missedShot || this.cellDesignations.damagedShot || this.cellDesignations.sunkShip:
             alert('You already shot these coordinates')
             break;
           default:
@@ -196,6 +236,8 @@ class App extends PureComponent {
   render() {
     const { field } = this.state;
     const isFieldReady = !!field;
+
+    console.log(field);
 
     const rowHeaderIterator = getIterator();
     const columnHeaderIterator = getIterator();

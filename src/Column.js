@@ -4,11 +4,11 @@ export const Column = ({ columnData, columnHeaderData, rowHeaderData }) => {
   return (
     <div className='column'>
       {columnHeaderData !== false
-        ? <div className='rowHeader'>{columnHeaderData}</div>
+        ? <span className='rowHeader'>{columnHeaderData}</span>
         : null
       }
       {rowHeaderData !== false
-        ? <div className='columnHeader'>{rowHeaderData}</div>
+        ? <span className='columnHeader'>{rowHeaderData}</span>
         : null
       }
       <div className={`cell`} />
