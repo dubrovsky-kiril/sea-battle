@@ -14,6 +14,7 @@ const { getRandomNumberInRange, getIterator } = require('./helpers');
 const { getCellsAroundCell, get_I_ShipDirections, get_L_ShipDirections } = require('./coordinatesGetters');
 const { Row } = require('./Row');
 const { Input } = require('./Input');
+const { CellDescription } = require('./CellDescription')
 
 class App extends PureComponent {
   constructor(props) {
@@ -67,12 +68,20 @@ class App extends PureComponent {
 
   isNotOutsideField = (coordinate, fieldRange) => coordinate >= fieldRange.min && coordinate <= fieldRange.max;
 
-  sieveDefaultCells = (field, reservedCell) => cellsToSieve => {
+  sieveCellsInsideField = (cellsToSieve, field) => {
     const fieldRange = this.getFieldRange(field);
-    const isInsideField = cell => this.isNotOutsideField(cell[0], fieldRange) && this.isNotOutsideField(cell[1], fieldRange);
+
+    const sieveCellsInsideField = cell => this.isNotOutsideField(cell[0], fieldRange) && this.isNotOutsideField(cell[1], fieldRange);
+
+    return filter(sieveCellsInsideField, cellsToSieve);
+  }
+
+  sieveDefaultCells = (field, reservedCell) => cellsToSieve => {
+    // const fieldRange = this.getFieldRange(field);
+    // const isInsideField = cell => this.isNotOutsideField(cell[0], fieldRange) && this.isNotOutsideField(cell[1], fieldRange);
     const isNotReserved = cell => field[cell[0]][cell[1]] !== reservedCell;
 
-    const cellsInsideField = filter(isInsideField, cellsToSieve);
+    const cellsInsideField = this.sieveCellsInsideField(cellsToSieve, field);
     const defaultCells = filter(isNotReserved, cellsInsideField);
 
     return defaultCells;
@@ -158,17 +167,19 @@ class App extends PureComponent {
   fire = e => {
     e.preventDefault();
 
-    const rowToFire = e.target.row.value;
-    const columnToFire = e.target.column.value
+    const rowToFire = +e.target.row.value;
+    const columnToFire = +e.target.column.value
 
-    if (rowToFire && columnToFire) {
+    if (Number.isInteger(rowToFire) && Number.isInteger(columnToFire)) {
       if (this.isNotOutsideField(rowToFire, this.getFieldRange(this.state.field)) && this.isNotOutsideField(columnToFire, this.getFieldRange(this.state.field))) {
         const fieldCopy = [...this.state.field];
         const shot = fieldCopy[rowToFire][columnToFire];
 
         switch(shot) {
           case this.cellDesignations.default:
-            this.setState({field: [...fieldCopy, ...fieldCopy[rowToFire][columnToFire] = this.cellDesignations.missedShot]})
+            const newField = this.placeOnField(this.cellDesignations.missedShot)(fieldCopy, [rowToFire, columnToFire]);
+
+            this.setState({field: newField})
             break;
           case this.cellDesignations.ship:
             fieldCopy[rowToFire][columnToFire] = this.cellDesignations.damagedShot;
@@ -206,15 +217,21 @@ class App extends PureComponent {
             const sunkShipCoordinates = reduce(getSunkShipCoordinates, undefined, shipsCoordinates);
 
             if (sunkShipCoordinates) {
-              const newField = this.placeCellsOnField(sunkShipCoordinates, fieldCopy, this.placeOnField(this.cellDesignations.sunkShip));
+              const newFieldWithSunkShip = this.placeCellsOnField(sunkShipCoordinates, fieldCopy, this.placeOnField(this.cellDesignations.sunkShip));
+              const cellsToHighlightCoordinates = differenceWith(isEqual, this.sieveCellsInsideField(flatten(map(getCellsAroundCell, sunkShipCoordinates)), newFieldWithSunkShip), sunkShipCoordinates);
+              const newField = this.placeCellsOnField(cellsToHighlightCoordinates, newFieldWithSunkShip, this.placeOnField(this.cellDesignations.missedShot));
 
               this.setState({field: newField})
             } else {
-              this.setState({field: [...fieldCopy, ...fieldCopy[rowToFire][columnToFire] = this.cellDesignations.damagedShot]})
+              const newField = this.placeOnField(this.cellDesignations.damagedShot)(fieldCopy, [rowToFire, columnToFire]);
+
+              this.setState({field: newField})
             }
             break;
           case this.cellDesignations.reserved:
-            this.setState({field: [...fieldCopy, ...fieldCopy[rowToFire][columnToFire] = this.cellDesignations.missedShot]})
+            const updatedField = this.placeOnField(this.cellDesignations.missedShot)(fieldCopy, [rowToFire, columnToFire]);
+
+            this.setState({field: updatedField})
             break;
           case this.cellDesignations.missedShot || this.cellDesignations.damagedShot || this.cellDesignations.sunkShip:
             alert('You already shot these coordinates')
@@ -245,22 +262,32 @@ class App extends PureComponent {
     return (
       <div className="container">
         <h1>Test your luck against <u>mighty computer</u></h1>
-        <div className='field'>
-          {isFieldReady && field.map((rowData, index) => (
-            <Row
-              key={index}
-              isColumnHeader={index === 0}
-              rowData={rowData}
-              rowHeaderIterator={rowHeaderIterator}
-              columnHeaderIterator={columnHeaderIterator}
-            />
-          ))}
+        <div className='content'>
+          <div className=''>
+            <div className='field'>
+              {isFieldReady && field.map((rowData, index) => (
+                <Row
+                  key={index}
+                  isColumnHeader={index === 0}
+                  rowData={rowData}
+                  rowHeaderIterator={rowHeaderIterator}
+                  columnHeaderIterator={columnHeaderIterator}
+                />
+              ))}
+            </div>
+            <form className='navigation' onSubmit={this.fire}>
+              <Input title='Row'/>
+              <Input title='Column'/>
+              <button>Fire!</button>
+            </form>
+          </div>
+          <div className='description'>
+            <CellDescription label='default' />
+            <CellDescription label='missed' />
+            <CellDescription label='damaged' />
+            <CellDescription label='sunk' />
+          </div>
         </div>
-        <form className='navigation' onSubmit={this.fire}>
-          <Input title='Row'/>
-          <Input title='Column'/>
-          <button>Fire!</button>
-        </form>
       </div>
     );
   }

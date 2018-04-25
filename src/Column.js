@@ -1,5 +1,18 @@
 import React from 'react';
 
+const getCellStyle = cellType => {
+  switch(cellType) {
+    case 3:
+      return 'missed';
+    case 4:
+      return 'damaged';
+    case 5:
+      return 'sunk';
+    default:
+      return '';
+  }
+}
+
 export const Column = ({ columnData, columnHeaderData, rowHeaderData }) => {
   return (
     <div className='column'>
@@ -11,7 +24,7 @@ export const Column = ({ columnData, columnHeaderData, rowHeaderData }) => {
         ? <span className='columnHeader'>{rowHeaderData}</span>
         : null
       }
-      <div className={`cell`} />
+      <div className={(`cell ${getCellStyle(columnData)}`).trim()} />
     </div>
   )
 };

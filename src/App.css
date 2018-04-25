@@ -8,6 +8,16 @@
   margin-bottom: 50px;
 }
 
+.content {
+  display: flex;
+}
+
+.content > div:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .field {
   margin: 25px 0;
   border: 1px solid #000;
@@ -29,19 +39,22 @@
 }
 
 .navigation > button {
-  width: 100px;
-  height: 35px;
-  font-size: 22px;
+  width: 110px;
+  font-size: 35px;
   border-radius: 15px;
+  cursor: pointer;
+  margin-left: 15px;
 }
 
 .input {
   margin-right: 15px;
+  display: flex;
+  align-items: center;
 }
 
 .input > label {
-  margin-right: 5px;
-  font-size: 20px;
+  margin-right: 10px;
+  font-size: 30px;
 }
 
 input:focus, button:focus {
@@ -56,7 +69,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .input > input {
   width: 60px;
-  font-size: 18px;
+  font-size: 30px;
 }
 
 .rowHeader, .columnHeader {
@@ -67,7 +80,6 @@ input[type=number]::-webkit-outer-spin-button {
 
 .rowHeader {
   top: -35px;
-  left: 20px;
 }
 
 .columnHeader {
@@ -77,4 +89,34 @@ input[type=number]::-webkit-outer-spin-button {
 
 .column {
   position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.missed {
+  background-color: lightgrey;
+}
+
+.damaged {
+  background-color: yellow;
+}
+
+.sunk {
+  background-color: red;
+}
+
+.description {
+  margin: 26px 0 0 50px;
+}
+
+.cell-description {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.label {
+  font-size: 20px;
+  margin-left: 10px;
 }

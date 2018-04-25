@@ -3,6 +3,6 @@ import React from 'react';
 export const Input = ({ title }) => (
   <div className='input'>
     <label>{title}:</label>
-    <input type='number' name={title.toLowerCase()} />
+    <input type='number' name={title.toLowerCase()} defaultValue='0' />
   </div>
 );
