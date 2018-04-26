@@ -16,12 +16,12 @@ Each ship must have outline color defining boundaries of a ship.
 
 6) Multi cell battle ships (I && L) must consist of 4 cells, so there is no ambiguity of L shapes that do not look like L and I shapes of more or less than 4 cells.
 
-# Prerequisites
+## Prerequisites
 - [git](https://git-scm.com/)
 - [node](https://nodejs.org/en/)
 - [yarn](https://yarnpkg.com/lang/en/)
 
-# How to start
+## How to start
 - `git clone https://github.com/dubrovsky-kiril/sea-battle.git` - to clone repository locally
 - `yarn` - to install dependencies
 - `yard start` - to start application in development mod
