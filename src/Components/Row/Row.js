@@ -1,5 +1,6 @@
 import React from 'react';
-import { Column } from './Column';
+import { Column } from '../Column/Column';
+import './Row.css';
 
 export const Row = ({ rowData, isColumnHeader, rowHeaderIterator, columnHeaderIterator}) => {
   return (

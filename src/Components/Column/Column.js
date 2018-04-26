@@ -1,4 +1,5 @@
 import React from 'react';
+import './Column.css';
 
 const getCellStyle = cellType => {
   switch(cellType) {

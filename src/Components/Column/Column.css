@@ -1,0 +1,33 @@
+.missed {
+  background-color: lightgrey;
+}
+
+.damaged {
+  background-color: yellow;
+}
+
+.sunk {
+  background-color: red;
+}
+
+.column {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.rowHeader, .columnHeader {
+  position: absolute;
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.rowHeader {
+  top: -35px;
+}
+
+.columnHeader {
+  right: 65px;
+  top: 10px;
+}

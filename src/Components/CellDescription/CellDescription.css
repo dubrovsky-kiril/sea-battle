@@ -1,0 +1,10 @@
+.cell-description {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.label {
+  font-size: 20px;
+  margin-left: 10px;
+}

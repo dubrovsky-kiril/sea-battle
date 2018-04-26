@@ -1,20 +1,20 @@
-require('./App.css');
-const React = require('react');
-const { PureComponent } = require('react');
+import React, { PureComponent } from 'react';
+import isEqual from 'lodash/fp/isEqual';
+import flatten from 'lodash/fp/flatten';
+import uniqWith from 'lodash/fp/uniqWith';
+import differenceWith from 'lodash/fp/differenceWith';
+import reduce from 'lodash/fp/reduce';
+import every from 'lodash/fp/every';
+import some from 'lodash/fp/some';
+import find from 'lodash/fp/find';
+import { getRandomNumberInRange, getIterator } from './helpers';
+import { getCellsAroundCell, get_I_ShipDirections, get_L_ShipDirections } from './coordinatesGetters';
+import { Row } from './Components/Row/Row';
+import { Input } from './Components/Input/Input';
+import { CellDescription } from './Components/CellDescription/CellDescription';
+import './App.css';
 const map = require('lodash/fp/map').convert({ 'cap': false });
-const isEqual = require('lodash/fp/isEqual');
-const flatten = require('lodash/fp/flatten');
-const uniqWith = require('lodash/fp/uniqWith');
 const filter = require('lodash/fp/filter').convert({ 'cap': false });
-const differenceWith = require('lodash/fp/differenceWith');
-const reduce = require('lodash/fp/reduce');
-const every = require('lodash/fp/every');
-const find = require('lodash/fp/find');
-const { getRandomNumberInRange, getIterator } = require('./helpers');
-const { getCellsAroundCell, get_I_ShipDirections, get_L_ShipDirections } = require('./coordinatesGetters');
-const { Row } = require('./Row');
-const { Input } = require('./Input');
-const { CellDescription } = require('./CellDescription')
 
 class App extends PureComponent {
   constructor(props) {
@@ -45,6 +45,7 @@ class App extends PureComponent {
         coordinates:[]
       }
     };
+
     this.state = {
       field: null
     };
@@ -77,8 +78,6 @@ class App extends PureComponent {
   }
 
   sieveDefaultCells = (field, reservedCell) => cellsToSieve => {
-    // const fieldRange = this.getFieldRange(field);
-    // const isInsideField = cell => this.isNotOutsideField(cell[0], fieldRange) && this.isNotOutsideField(cell[1], fieldRange);
     const isNotReserved = cell => field[cell[0]][cell[1]] !== reservedCell;
 
     const cellsInsideField = this.sieveCellsInsideField(cellsToSieve, field);
@@ -164,11 +163,24 @@ class App extends PureComponent {
     this.setState({field: this.add_L_Ships(this.add_I_Ships(this.add_Dot_Ships(this.getField(this.fieldSize, this.cellDesignations.default))))})
   }
 
+  componentDidUpdate() {
+    const hasShipCell = row => some(cell => cell === this.cellDesignations.ship, row)
+    const areAllShipsSunked = !some(hasShipCell, this.state.field);
+
+    if (areAllShipsSunked) {
+      setTimeout(() => {
+        alert('Congratulations! You have defeated a mighty computer! But seems like he does not want to give up...');
+
+        this.setState({field: this.add_L_Ships(this.add_I_Ships(this.add_Dot_Ships(this.getField(this.fieldSize, this.cellDesignations.default))))})
+      }, 0);
+    }
+  }
+
   fire = e => {
     e.preventDefault();
 
-    const rowToFire = +e.target.row.value;
-    const columnToFire = +e.target.column.value
+    const rowToFire = parseInt(e.target.row.value, 10);
+    const columnToFire = parseInt(e.target.column.value, 10);
 
     if (Number.isInteger(rowToFire) && Number.isInteger(columnToFire)) {
       if (this.isNotOutsideField(rowToFire, this.getFieldRange(this.state.field)) && this.isNotOutsideField(columnToFire, this.getFieldRange(this.state.field))) {
@@ -229,11 +241,15 @@ class App extends PureComponent {
             }
             break;
           case this.cellDesignations.reserved:
-            const updatedField = this.placeOnField(this.cellDesignations.missedShot)(fieldCopy, [rowToFire, columnToFire]);
+            {
+              const newField = this.placeOnField(this.cellDesignations.missedShot)(fieldCopy, [rowToFire, columnToFire]);
 
-            this.setState({field: updatedField})
+              this.setState({field: newField})
+            }
             break;
-          case this.cellDesignations.missedShot || this.cellDesignations.damagedShot || this.cellDesignations.sunkShip:
+          case this.cellDesignations.missedShot:
+          case this.cellDesignations.damagedShot:
+          case this.cellDesignations.sunkShip:
             alert('You already shot these coordinates')
             break;
           default:
@@ -254,8 +270,6 @@ class App extends PureComponent {
     const { field } = this.state;
     const isFieldReady = !!field;
 
-    console.log(field);
-
     const rowHeaderIterator = getIterator();
     const columnHeaderIterator = getIterator();
 
@@ -263,7 +277,7 @@ class App extends PureComponent {
       <div className="container">
         <h1>Test your luck against <u>mighty computer</u></h1>
         <div className='content'>
-          <div className=''>
+          <div>
             <div className='field'>
               {isFieldReady && field.map((rowData, index) => (
                 <Row

@@ -1,4 +1,5 @@
 import React from 'react';
+import './CellDescription.css'
 
 export const CellDescription = ({ label }) => (
   <div className='cell-description'>

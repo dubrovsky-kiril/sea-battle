@@ -1,0 +1,15 @@
+.input {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.input > label {
+  margin-right: 10px;
+  font-size: 30px;
+}
+
+.input > input {
+  width: 60px;
+  font-size: 30px;
+}
